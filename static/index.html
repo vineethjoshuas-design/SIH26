@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS-GIS: Strategic Relocation & Hazard Intelligence // MHA SIH26191</title>
+
+    <!-- Google Fonts: Outfit & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet GIS Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Tactical Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css?v=2.4.3">
+</head>
+
+<body>
+
+    <!-- Strategic Ministry of Home Affairs Hazard Dashboard Header -->
+    <header class="cad-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; background: rgba(11, 19, 34, 0.98); border-bottom: 1px solid rgba(56, 189, 248, 0.2);">
+        <div class="brand-section">
+            <div class="brand-logo" style="background: linear-gradient(135deg, #0284c7, #1e40af); box-shadow: 0 0 16px rgba(2, 132, 199, 0.4);">
+                <i data-lucide="shield" style="color: white; width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div class="brand-title" style="letter-spacing: 0.5px;">
+                    AEGIS-GIS: Strategic Relocation & Hazard Intelligence <span class="brand-live-tag" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399;">MHA // SIH26191</span>
+                </div>
+                <div class="brand-subtitle" style="color: #94a3b8; font-size: 0.72rem; letter-spacing: 0.8px;">
+                    Predictive Risk Assessment, Carrying Capacity &amp; Relocation Engine // SIH26191
+                </div>
+            </div>
+        </div>
+
+        <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+            <button id="btn-data-refresh" class="btn btn-secondary" onclick="window.cadApp.handleDataRefresh()" title="Refresh Live IMD Weather, Census Demographics & Risk Matrices" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-weight: 700; font-size: 0.78rem;">
+                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> DATA REFRESH
+            </button>
+            <button id="btn-export-sitrep" class="btn btn-primary" onclick="window.cadApp.handleSitrepModalOpen()" title="Export Strategic Relocation SITREP (Official Briefing)" style="background: linear-gradient(135deg, #0284c7, #0369a1); border-color: #0284c7; display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-weight: 700; font-size: 0.78rem;">
+                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> EXPORT SITREP
+            </button>
+        </div>
+    </header>
+
+    <!-- CRITICAL ALERT BANNER -->
+    <div id="critical-alert-banner" style="background: linear-gradient(90deg, rgba(239,68,68,0.18), rgba(127,29,29,0.25)); border-bottom: 1px solid rgba(239,68,68,0.45); padding: 6px 24px; display: flex; align-items: center; gap: 10px; font-size: 0.78rem; font-weight: 700; color: #fca5a5; letter-spacing: 0.3px;">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #ef4444; border-radius: 50%; color: #fff; font-size: 0.7rem; font-weight: 800; flex-shrink: 0; animation: pulseGlow 1.5s infinite alternate;">!</span>
+        <span style="color: #fca5a5;"><strong style="color: #f87171; text-transform: uppercase; letter-spacing: 0.5px;">CRITICAL ALERT:</strong> 3 Red Zones Identified, 2 Over-Capacity Habitations.</span>
+        <span id="alert-banner-live-count" style="margin-left: auto; font-family: var(--font-mono); font-size: 0.72rem; color: #f87171; white-space: nowrap;">⬤ LIVE MONITORING</span>
+    </div>
+
+
+    <!-- Main Workspace -->
+    <div class="cad-workspace">
+        
+        <nav class="cad-nav-rail">
+            <!-- Tab 1: Background Engine -->
+            <button class="nav-tab" data-tab="tab-engine" id="nav-tab-engine" title="Tab 1: Background Engine — SIH26191 Data Fusion Pipeline">
+                <i data-lucide="settings"></i>
+                <span>ENGINE</span>
+            </button>
+
+            <!-- Tab 2: Hazard Red Zones (Default View) -->
+            <button class="nav-tab active" data-tab="tab-map" id="nav-tab-redzones" title="Tab 2: Hazard Red Zones — Dynamic Graded Risk Polygons & Heatmap">
+                <i data-lucide="map"></i>
+                <span>HAZARD ZONES</span>
+            </button>
+
+            <!-- Tab 3: Carrying Capacity Matrix -->
+            <button class="nav-tab" data-tab="tab-capacity" id="nav-tab-capacity" title="Tab 3: Carrying Capacity Matrix & Demographic Vulnerability">
+                <i data-lucide="bar-chart-2"></i>
+                <span>CARRYING CAPACITY</span>
+            </button>
+
+            <!-- Tab 4: Relocation Command Plan -->
+            <button class="nav-tab" data-tab="tab-relocation-plan" id="nav-tab-relocation" title="Tab 4: Relocation Command Plan & Evacuation Routing">
+                <i data-lucide="navigation"></i>
+                <span>RELOCATION PLAN</span>
+            </button>
+        </nav>
+
+        <!-- Content Area -->
+        <div class="content-area">
+
+            <!-- TAB 1: BACKGROUND ENGINE (DATA FUSION BACKEND) -->
+            <div id="tab-engine" class="tab-pane">
+                <div class="sih-view-container" style="padding: 20px; overflow-y: auto; height: 100%;">
+                    <div class="panel-card" style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; background: rgba(56,189,248,0.15); border: 1px solid #38bdf8; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="settings" style="color: #38bdf8;"></i>
+                                </div>
+                                <div>
+                                    <h2 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0;">SIH26191 Background Engine & Data Fusion Pipeline</h2>
+                                    <div style="font-size: 0.78rem; color: #94a3b8;">Unified multi-source ingestion combining Open-Meteo telemetry, census demographics, topographic slopes & SQLite state persistence.</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" onclick="window.cadApp.loadSIH26191Data(); window.cadApp.loadTamilNaduTelemetry();">
+                                    <i data-lucide="refresh-cw"></i> Force Engine Resync
+                                </button>
+                                <button class="btn btn-primary" onclick="window.cadApp.switchTab('tab-map')">
+                                    <i data-lucide="map"></i> View on GIS Map
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pipeline Status Cards -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 20px;">
+                            <div style="background: rgba(15,23,42,0.8); border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Meteorological Telemetry</span>
+                                    <span class="badge" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #34d399; font-size: 0.7rem;">LIVE STREAMING</span>
+                                </div>
+                                <div style="font-size: 1.3rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono);">8 Stations Online</div>
+                                <div style="font-size: 0.72rem; color: #cbd5e1; margin-top: 4px;">Open-Meteo REST API • 30-sec polling • Rainfall & Wind Gust tracking.</div>
+                            </div>
+
+                            <div style="background: rgba(15,23,42,0.8); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Red Zone Polygon Generator</span>
+                                    <span class="badge" style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #f87171; font-size: 0.7rem;">DYNAMIC ENGINE</span>
+                                </div>
+                                <div style="font-size: 1.3rem; font-weight: 800; color: #ef4444; font-family: var(--font-mono);">Multi-Hazard Scoring</div>
+                                <div style="font-size: 0.72rem; color: #cbd5e1; margin-top: 4px;">Risk = 0.35(Weather) + 0.35(Slope/Terrain) + 0.30(Incident Density).</div>
+                            </div>
+
+                            <div style="background: rgba(15,23,42,0.8); border: 1px solid rgba(249,115,22,0.3); border-radius: 8px; padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Carrying Capacity Evaluator</span>
+                                    <span class="badge" style="background: rgba(249,115,22,0.2); border: 1px solid #f97316; color: #fb923c; font-size: 0.7rem;">THRESHOLD 2.0x</span>
+                                </div>
+                                <div style="font-size: 1.3rem; font-weight: 800; color: #f97316; font-family: var(--font-mono);">8 Habitations Monitored</div>
+                                <div style="font-size: 0.72rem; color: #cbd5e1; margin-top: 4px;">Demographic fragility ratios & local shelter deficit modeling.</div>
+                            </div>
+
+                            <div style="background: rgba(15,23,42,0.8); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Automated Relocation Planner</span>
+                                    <span class="badge" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #34d399; font-size: 0.7rem;">HAUL OPTIMIZER</span>
+                                </div>
+                                <div style="font-size: 1.3rem; font-weight: 800; color: #10b981; font-family: var(--font-mono);">8 Relief Centers Synced</div>
+                                <div style="font-size: 0.72rem; color: #cbd5e1; margin-top: 4px;">Haversine route corridors, bus/ambulance logistics & live occupancy locks.</div>
+                            </div>
+                        </div>
+
+                        <!-- Diagnostics Console Log -->
+                        <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;"><i data-lucide="terminal" style="width:14px; display:inline-block; vertical-align:middle;"></i> Engine Telemetry Stream Log</span>
+                                <span style="font-size: 0.7rem; color: #34d399; font-family: var(--font-mono);">● ENGINE DAEMON HEALTHY</span>
+                            </div>
+                            <pre id="engine-telemetry-log" style="font-family: var(--font-mono); font-size: 0.76rem; color: #e2e8f0; line-height: 1.5; margin: 0; max-height: 200px; overflow-y: auto;">
+[ENGINE INIT] AEGIS-GIS Data Fusion Engine active on Python 3.14 / FastAPI / SQLite
+[GEO-INGEST] 8 census habitation polygons indexed across Tamil Nadu districts
+[SHELTER-SYNC] 8 high-capacity relief complexes registered with 16,500 aggregate bed capacity
+[METEO-FEED] Open-Meteo telemetry collector listening on 8 station nodes (Chennai, Madurai, Cuddalore, Coonoor, Trichy, Thoothukudi)
+[HAZARD-MODEL] Dynamic risk polygon generator running: Rainfall + Slope stability + Census density
+[CAPACITY-EVAL] Carrying capacity stress evaluated: 5 habitations exceed 2.0x infrastructure threshold
+[RELOCATION] Automated priority-ranking generated: Phase 1 relocation corridors calculated with fleet logistics
+[WEBSOCKET] Real-time event bus connected: RELOCATION_EXECUTED and TELEMETRY_SYNC events ready
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: HAZARD RED ZONES & TACTICAL MAP (DEFAULT FOCUS) -->
+            <div id="tab-map" class="tab-pane active">
+                <div class="map-view-container">
+                    
+                    <!-- Floating Filter Controls -->
+                    <div class="map-overlay-controls">
+                        <div class="map-control-title"><i data-lucide="layers" style="width: 14px; display: inline-block; vertical-align: middle;"></i> Map Layers & Filters</div>
+                        <select id="map-filter-type" class="filter-select">
+                            <option value="ALL">All Disaster Types</option>
+                            <option value="FIRE">Fire & Blaze</option>
+                            <option value="FLOOD">Floods & Waterlogging</option>
+                            <option value="INDUSTRIAL">Industrial & Hazmat Gas</option>
+                            <option value="STRUCTURAL_COLLAPSE">Structural Collapse</option>
+                            <option value="CYCLONE">Cyclone & High Winds</option>
+                            <option value="EARTHQUAKE">Earthquake / Tremors</option>
+                        </select>
+                        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">SIH26191 MAP LAYER FOCUS:</div>
+                        <select id="map-layer-mode" class="filter-select" style="margin-top: 2px; border-color: rgba(56,189,248,0.4);" onchange="window.cadMapManager.setMapMode(this.value)">
+                            <option value="RED_ZONES">🔴 Hazard Red Zones (Graded Polygons)</option>
+                            <option value="ALL">🌐 All Overlays (Zones + Habitations + Shelters + Corridors)</option>
+                            <option value="CONVOYS">🚚 Relocation Corridors & Shelters</option>
+                            <option value="HABITATIONS">🏘️ Vulnerable Habitations Only</option>
+                            <option value="SHELTERS">⛺ Evacuation Shelters Only</option>
+                        </select>
+
+                        <!-- Selectable Overlays Checkboxes -->
+                        <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 4px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #f59e0b; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="toggle-hazard-heatmap" checked onchange="window.cadMapManager.toggleHazardHeatmap(this.checked)">
+                                <span>🔥 Multi-Color Hazard Heatmap</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #67e8f9; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="toggle-census-boundaries" checked onchange="window.cadMapManager.toggleCensusBoundaries(this.checked)">
+                                <span>🗺️ Census Village Boundaries</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #f87171; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="toggle-geological-faults" name="toggle-geology-boundaries" onchange="window.cadApp.toggleGeologicalFaultLines(this.checked)">
+                                <span>🌋 Geological Fault Lines GIS</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Floating Restore Pill Button (Visible when Right Panel is Minimized) -->
+                    <div id="btn-restore-insight-pill" class="floating-insight-restore-pill" style="display: none;" onclick="window.cadApp.restoreInsightPanel()">
+                        <i data-lucide="panel-right-open"></i> <span>EXPAND HAZARD BRIEFING</span>
+                    </div>
+
+                    <!-- Map Legend (Bottom-Right overlay) -->
+                    <div style="position: absolute; bottom: 20px; right: 450px; background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.72rem; z-index: 999; backdrop-filter: blur(10px); box-shadow: 0 4px 16px rgba(0,0,0,0.6); pointer-events: auto;">
+                        <div style="font-weight: 800; color: #fff; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="shield" style="width: 13px; color: #38bdf8;"></i>
+                            <span>RISK POLYGONS & BOUNDARIES</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; align-items: center; gap: 6px; color: #fca5a5;">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #ef4444; box-shadow: 0 0 6px #ef4444;"></span>
+                                <strong>Red:</strong> Critical Risk / Immediate Relocation
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; color: #fde68a;">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span>
+                                <strong>Amber:</strong> High Risk / Prepare Relocation
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; color: #a7f3d0;">
+                                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
+                                <strong>Green:</strong> Safe Habitation / Monitoring
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; color: #67e8f9; margin-top: 2px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 3px;">
+                                <span style="display: inline-block; width: 12px; height: 3px; background: #06b6d4;"></span>
+                                <strong>Cyan Dashed:</strong> Census Village Boundary
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leaflet Container -->
+                    <div id="tactical-map"></div>
+
+                    <!-- Sleek Expandable Floating Sensor HUD Chip (Bottom-Left) -->
+                    <div id="map-sensor-floating-container" class="map-floating-sensor-wrap">
+                        <!-- Collapsed Toggle Chip -->
+                        <button id="btn-toggle-sensor-hud" class="sensor-hud-pill-btn" title="Click to view live weather & sensor telemetry across Tamil Nadu">
+                            <span class="status-dot" style="background: #10b981;"></span>
+                            <span>🛰️ TN SENSOR GRID</span>
+                            <span id="sensor-hud-summary-temp" class="sensor-chip-temp">30.8°C</span>
+                            <i data-lucide="chevron-up" id="sensor-hud-arrow" style="width: 13px; height: 13px; transition: transform 0.2s;"></i>
+                        </button>
+
+                        <!-- Expandable HUD Drawer -->
+                        <div id="map-sensor-panel" class="sensor-hud-drawer" style="display: none;">
+                            <div class="sensor-hud-header">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="status-dot" style="background: #34d399; width: 7px; height: 7px;"></span>
+                                    <strong style="color: #34d399; font-size: 0.78rem; letter-spacing: 0.5px;">TAMIL NADU SENSOR TELEMETRY</strong>
+                                </div>
+                                <span id="sensor-hud-live-tag" style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono);">8 STATIONS ACTIVE</span>
+                            </div>
+
+                            <div id="tn-telemetry-nodes" class="sensor-nodes-grid">
+                                <div class="sensor-node-card">
+                                    <span class="node-city">📍 Chennai</span>
+                                    <strong class="node-val" id="tel-chennai">30.8°C | 0.0mm</strong>
+                                </div>
+                                <div class="sensor-node-card">
+                                    <span class="node-city">📍 Coimbatore</span>
+                                    <strong class="node-val" id="tel-coimbatore">28.4°C | 0.0mm</strong>
+                                </div>
+                                <div class="sensor-node-card">
+                                    <span class="node-city">📍 Madurai</span>
+                                    <strong class="node-val" id="tel-madurai">31.6°C | 0.0mm</strong>
+                                </div>
+                                <div class="sensor-node-card">
+                                    <span class="node-city">📍 Trichy</span>
+                                    <strong class="node-val" id="tel-trichy">30.9°C | 0.0mm</strong>
+                                </div>
+                                <div class="sensor-node-card">
+                                    <span class="node-city">📍 Sriperumbudur</span>
+                                    <strong class="node-val" id="tel-sriperumbudur">29.8°C | 0.0mm</strong>
+                                </div>
+                            </div>
+
+                            <div class="sensor-hud-actions">
+                                <button id="btn-sync-tn-realtime" class="btn btn-sm btn-hud-sync" title="Collect and ingest real-time weather & sensor alerts">
+                                    <i data-lucide="satellite" style="width: 12px; height: 12px;"></i> Sync Real-Time TN Telemetry
+                                </button>
+                                <button id="btn-reset-tn-db" class="btn btn-sm btn-hud-align" title="Align database with 4 Chennai + 4 Tamil Nadu tasks">
+                                    <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i> Align TN Tasks (4+4)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SIH26191 PREDICTIVE HAZARD INSIGHT & RELOCATION PLAN PANEL -->
+                    <div id="hazard-insight-panel" class="map-drawer hazard-insight-drawer" style="display: flex;">
+                        <!-- Header -->
+                        <div class="drawer-header" style="background: rgba(15,23,42,0.96); border-bottom: 1px solid rgba(239,68,68,0.3); padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                    <span class="badge" style="background: rgba(239,68,68,0.25); border: 1px solid #ef4444; color: #f87171; font-weight: 800; font-size: 0.72rem;">SIH26191 ENGINE</span>
+                                    <span id="insight-zone-badge" class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.7rem; font-family: var(--font-mono);">HAZARD INSIGHT // THIRUVANAMADUR (ZONE ID: ZN-44B)</span>
+                                </div>
+                                <h3 id="insight-panel-header" style="font-size: 1.05rem; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    SIH26191: Predictive Hazard Insight & Relocation Plan
+                                </h3>
+                                <div id="insight-panel-subtitle" style="font-size: 0.75rem; color: #94a3b8; margin-top: 3px;">
+                                    MoES/IMD Hydro-Meteorological Hazard Feeds & Census Demographics Engine
+                                </div>
+                            </div>
+                            <div class="drawer-header-actions" style="display: flex; align-items: center; gap: 5px;">
+                                <button id="btn-expand-insight" class="btn-icon" title="Expand Dashboard Wide" onclick="window.cadApp.toggleExpandInsightPanel()">
+                                    <i data-lucide="maximize-2" id="icon-expand-insight" style="color: #38bdf8; width: 14px; height: 14px;"></i>
+                                </button>
+                                <button id="btn-minimize-insight" class="btn-icon" title="Minimize Panel" onclick="window.cadApp.toggleMinimizeInsightPanel()">
+                                    <i data-lucide="minus" style="color: #94a3b8; width: 14px; height: 14px;"></i>
+                                </button>
+                                <button class="btn-icon" title="Reset View" onclick="window.cadApp.selectHazardZone('HAB-VEL-01')">
+                                    <i data-lucide="refresh-cw" style="color: #38bdf8; width: 14px; height: 14px;"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="drawer-body" style="padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;">
+                            
+                            <!-- 1. Predictive Timeline Bar -->
+                            <div class="timeline-risk-card" style="background: rgba(15,23,42,0.85); border: 1px solid rgba(239,68,68,0.35); border-radius: 8px; padding: 12px 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">PREDICTIVE TIMELINE</span>
+                                    <span id="insight-phase-badge" class="badge" style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #f87171; font-size: 0.68rem; font-weight: 800;">CRITICAL RELOCATION PHASE</span>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                                    <div>
+                                        <span style="font-size: 0.68rem; color: #64748b; display: block; font-weight: 700;">EXPECTED ONSET</span>
+                                        <strong id="insight-expected-onset" style="font-size: 1.15rem; color: #fff; font-family: var(--font-mono);">14 HOURS (Approx.)</strong>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="font-size: 0.68rem; color: #64748b; display: block; font-weight: 700;">RISK INTENSITY</span>
+                                        <strong id="insight-risk-intensity" style="font-size: 1.05rem; color: #ef4444; font-weight: 800; letter-spacing: 0.5px;">CRITICAL</strong>
+                                    </div>
+                                </div>
+
+                                <div style="height: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; overflow: hidden; position: relative; border: 1px solid rgba(239,68,68,0.4);">
+                                    <div id="insight-timeline-bar" style="height: 100%; width: 90%; background: linear-gradient(90deg, #f59e0b, #ef4444); box-shadow: 0 0 14px #ef4444; animation: pulseGlow 2s infinite alternate;"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #64748b; margin-top: 4px; font-family: var(--font-mono);">
+                                    <span>T-24h ALERT</span>
+                                    <span id="insight-onset-threshold-label" style="color: #ef4444; font-weight: 700;">14 HOURS (Approx.)</span>
+                                    <span>PEAK SURGE</span>
+                                </div>
+                            </div>
+
+                            <!-- 2. Predictive Insight Breakdown (Structured Grid) -->
+                            <div style="background: rgba(15,23,42,0.85); border: 1px solid rgba(56,189,248,0.25); border-radius: 8px; padding: 14px;">
+                                <div style="font-size: 0.78rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between;">
+                                    <span style="display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="sparkles" style="width: 14px;"></i> Predictive Insight Breakdown
+                                    </span>
+                                    <span class="badge" style="background: rgba(16,185,129,0.15); color: #34d399; font-size: 0.65rem;">IMD / MoES VALIDATED</span>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; line-height: 1.45;">
+                                    
+                                    <div style="background: rgba(2,6,23,0.6); padding: 8px 10px; border-radius: 6px; border-left: 3px solid #38bdf8;">
+                                        <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Possible Disaster</div>
+                                        <div id="insight-possible-disaster" style="color: #f1f5f9; font-weight: 700; margin-top: 2px;">🌊 Riverine Flood / Flash Flood</div>
+                                    </div>
+
+                                    <div style="background: rgba(2,6,23,0.6); padding: 8px 10px; border-radius: 6px; border-left: 3px solid #fbbf24;">
+                                        <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Reason / Cause (MoES / IMD & Catchment Inflow)</div>
+                                        <div id="insight-reason-cause" style="color: #f1f5f9; font-weight: 500; margin-top: 2px;">🌧️ <strong>345mm forecasted rainfall in 24hr cycle</strong>, compounded by upper catchment release from Chembarambakkam Dam.</div>
+                                    </div>
+
+                                    <div style="background: rgba(2,6,23,0.6); padding: 8px 10px; border-radius: 6px; border-left: 3px solid #f97316;">
+                                        <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Predicted Scale & Scope</div>
+                                        <div id="insight-predicted-scale" style="color: #f1f5f9; font-weight: 600; margin-top: 2px;">⚠️ Widespread inundation of habitations H-12, H-13, H-14; approx. 15 sq km.</div>
+                                    </div>
+
+                                    <div style="background: rgba(2,6,23,0.6); padding: 8px 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                                        <div style="font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Affected Victims (Indian Census Database)</div>
+                                        <div id="insight-affected-victims" style="color: #f87171; font-weight: 800; font-size: 0.95rem; margin-top: 2px;">👥 EST. 3,800 People</div>
+                                        <div id="insight-victims-breakdown" style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">Derived from Census: 940 Households • 580 Elderly • 910 Children • 85 Differently-Abled</div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- 3. Carrying Capacity & Vulnerability Mini-Charts Section -->
+                            <div class="carrying-capacity-vulnerability-section" style="background: rgba(15,23,42,0.85); border: 1px solid rgba(56,189,248,0.25); border-radius: 8px; padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div style="font-size: 0.78rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="bar-chart" style="width: 14px;"></i>
+                                        <span>Carrying Capacity & Vulnerability Charts</span>
+                                    </div>
+                                    <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.68rem;">CENSUS METRICS</span>
+                                </div>
+                                
+                                <!-- Mini Charts Container -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                    <!-- Mini Chart 1: Population Density vs Safe Threshold -->
+                                    <div style="background: rgba(2,6,23,0.6); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                                        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Density vs. Capacity</div>
+                                        <div style="height: 110px; position: relative;">
+                                            <canvas id="mini-chart-density"></canvas>
+                                        </div>
+                                        <div id="mini-density-sublabel" style="font-size: 0.65rem; color: #f87171; text-align: center; margin-top: 2px; font-weight: 600;">3.5x Safe Threshold</div>
+                                    </div>
+
+                                    <!-- Mini Chart 2: Demographic Vulnerability Donut -->
+                                    <div style="background: rgba(2,6,23,0.6); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                                        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Vulnerable Breakdown</div>
+                                        <div style="height: 110px; position: relative;">
+                                            <canvas id="mini-chart-demographics"></canvas>
+                                        </div>
+                                        <div id="mini-demo-sublabel" style="font-size: 0.65rem; color: #fb923c; text-align: center; margin-top: 2px; font-weight: 600;">1,740 Vulnerable (41.4%)</div>
+                                    </div>
+                                </div>
+
+                                <!-- Mini Chart 3: Shelter Occupancy Limits / Absorption Bar -->
+                                <div style="background: rgba(2,6,23,0.6); padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: #94a3b8; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">
+                                        <span>Shelter Occupancy (S-9, S-10)</span>
+                                        <span id="mini-shelter-occupancy-text" style="color: #34d399; font-family: var(--font-mono); font-weight: 700;">1,600 / 2,000 Headroom</span>
+                                    </div>
+                                    <div style="height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid rgba(16,185,129,0.3);">
+                                        <div id="mini-shelter-occupancy-bar" style="height: 100%; width: 80%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.62rem; color: #64748b; margin-top: 3px;">
+                                        <span id="mini-shelter-occ-percent">Current Occupancy: 20%</span>
+                                        <span id="mini-shelter-avail-percent" style="color: #34d399; font-weight: 600;">80% Available Headroom</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Embedded Relocation Map & Action Plan Widget -->
+                            <div class="mini-relocation-map-widget" style="background: rgba(15,23,42,0.85); border: 1px solid rgba(56,189,248,0.3); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 0.75rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="map" style="width: 14px;"></i> Embedded Relocation Map
+                                    </span>
+                                    <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.68rem;">HIGH-RISK TO SHELTER CORRIDOR</span>
+                                </div>
+                                <div id="mini-relocation-map"></div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: #94a3b8; margin-top: 6px;">
+                                    <span style="display: flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; background:#ef4444; border-radius:2px; box-shadow: 0 0 6px #ef4444;"></span> High-Risk Zone</span>
+                                    <span style="display: flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:8px; height:8px; background:#10b981; border-radius:2px; box-shadow: 0 0 6px #10b981;"></span> Shelters (Green Pins)</span>
+                                    <span style="display: flex; align-items: center; gap: 4px;"><span style="display:inline-block; width:12px; height:3px; background:#38bdf8;"></span> Evacuation Corridor</span>
+                                </div>
+                            </div>
+
+                            <!-- 5. Primary Relocation Destinations (Specific Shelters with Real-time Capacity and Open Slots) -->
+                            <div class="primary-destinations-widget" style="background: rgba(15,23,42,0.85); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 0.75rem; font-weight: 800; color: #34d399; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="shield-check" style="width: 14px;"></i> Primary Relocation Destinations
+                                    </span>
+                                    <span class="badge" style="background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid #10b981; font-size: 0.68rem;">LIVE CAPACITY & OPEN SLOTS</span>
+                                </div>
+                                <div id="primary-destinations-list" style="display: flex; flex-direction: column; gap: 6px;">
+                                    <!-- Populated dynamically: Shelter S-9 (Capacity: 2000, Open: 400), etc. -->
+                                </div>
+                            </div>
+
+                            <!-- 6. Recommended Government Measures -->
+                            <div class="gov-measures-widget" style="background: rgba(15,23,42,0.85); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                    <i data-lucide="clipboard-check" style="width: 14px; color: #fbbf24;"></i>
+                                    <span style="font-size: 0.75rem; font-weight: 800; color: #fbbf24; text-transform: uppercase;">Recommended Government Measures</span>
+                                </div>
+                                <div id="panel-gov-measures-content" style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.45;">
+                                    🛡️ <strong>Phase 1 Relocation Steps:</strong> Immediate mobilization of vulnerable habitations. Secure route via Velachery Main Rd Corridor.<br/>
+                                    🚤 <strong>SDRF / NDRF Deployment:</strong> Position 4 inflatable rescue boats and 2 tactical swift-water teams.<br/>
+                                    🍞 <strong>3-Day Food Supply Logistics:</strong> Pre-position dry rations, potable water tankers (20,000L), and emergency baby food packs.
+                                </div>
+                            </div>
+
+                            <!-- 7. Operational Action Buttons -->
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button id="btn-mobilize-zone-relocation" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 0.85rem; font-weight: 800; background: linear-gradient(135deg, #ef4444, #dc2626); border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.4);" onclick="window.cadApp.triggerPhase1Relocation('HAB-VEL-01')">
+                                    <i data-lucide="truck"></i> INITIATE PHASE 1 RELOCATION CONVOYS
+                                </button>
+                                <button class="btn btn-secondary" style="width: 100%; padding: 8px; font-size: 0.78rem;" onclick="window.cadApp.switchTab('tab-capacity')">
+                                    <i data-lucide="bar-chart-2"></i> View Carrying Capacity Matrix
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div id="map-incident-drawer" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CARRYING CAPACITY MATRIX -->
+            <div id="tab-capacity" class="tab-pane">
+                <div class="sih-view-container" style="padding: 20px; overflow-y: auto; height: 100%;">
+                    
+                    <!-- Header & Zone Selector -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(15,23,42,0.85); border: 1px solid rgba(56,189,248,0.3); border-radius: 10px; padding: 14px 18px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 800;">SIH26191 MATRIX</span>
+                                <h2 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin: 0;">Carrying Capacity Assessment & Demographic Vulnerability</h2>
+                            </div>
+                            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 3px;">
+                                Strategic evaluation of population density versus infrastructure limits, vulnerable demographics & safe shelter absorption capacity.
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 700;">FILTER REGION / ZONE:</label>
+                            <select id="capacity-zone-filter" class="filter-select" style="min-width: 240px; font-weight: 600;" onchange="window.cadApp.handleCapacityZoneFilter(this.value)">
+                                <option value="ALL">🌐 Statewide Overview (All 8 Habitations)</option>
+                                <option value="HAB-VEL-01">📍 ZN-44B: Thiruvanamadhur / Velachery Basin</option>
+                                <option value="HAB-ENN-02">📍 ZN-12A: Ennore Coastal Creek</option>
+                                <option value="HAB-CUD-03">📍 ZN-08C: Cuddalore Coastal Hamlet</option>
+                                <option value="HAB-NIL-04">📍 ZN-04D: Coonoor Hill Slope Village</option>
+                                <option value="HAB-MDU-05">📍 ZN-19E: Madurai Vaigai Riverbed</option>
+                                <option value="HAB-THO-06">📍 ZN-22F: Thoothukudi Salt Pan Settlement</option>
+                                <option value="HAB-PER-07">📍 ZN-31G: Perungudi Marshland Border</option>
+                                <option value="HAB-TRC-08">📍 ZN-15H: Srirangam Kaveri Flood Plain</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="window.cadApp.loadSIH26191Data(); window.cadApp.updateCapacityCharts();">
+                                <i data-lucide="refresh-cw"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4 KPI Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
+                        <div class="panel-card" style="padding: 14px; border-left: 4px solid #38bdf8;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Habitations Evaluated</div>
+                            <div id="cap-kpi-total-hab" style="font-size: 1.8rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono);">8</div>
+                            <div style="font-size: 0.72rem; color: #94a3b8;">Across 6 Tamil Nadu Disaster Corridors</div>
+                        </div>
+                        <div class="panel-card" style="padding: 14px; border-left: 4px solid #ef4444;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Over Carrying Capacity</div>
+                            <div id="cap-kpi-over-cap" style="font-size: 1.8rem; font-weight: 800; color: #ef4444; font-family: var(--font-mono);">5</div>
+                            <div style="font-size: 0.72rem; color: #fca5a5;">Exceeds 2.0x Infrastructure Threshold</div>
+                        </div>
+                        <div class="panel-card" style="padding: 14px; border-left: 4px solid #fb923c;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Vulnerable Population</div>
+                            <div id="cap-kpi-vulnerable-pop" style="font-size: 1.8rem; font-weight: 800; color: #fb923c; font-family: var(--font-mono);">11,739</div>
+                            <div style="font-size: 0.72rem; color: #fed7aa;">Elderly, Children, Mobility-Impaired</div>
+                        </div>
+                        <div class="panel-card" style="padding: 14px; border-left: 4px solid #10b981;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Safe Shelter Headroom</div>
+                            <div id="cap-kpi-shelter-headroom" style="font-size: 1.8rem; font-weight: 800; color: #10b981; font-family: var(--font-mono);">14,140</div>
+                            <div style="font-size: 0.72rem; color: #a7f3d0;">Available Relocation Bed Capacity</div>
+                        </div>
+                    </div>
+
+                    <!-- The 3 Key Chart.js Charts Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                        
+                        <!-- Chart 1: Population Density vs. Infrastructure Threshold -->
+                        <div class="panel-card" style="padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="activity" style="color: #ef4444;"></i>
+                                    <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">1. Population Density vs. Infrastructure Threshold</span>
+                                </div>
+                                <span class="badge" style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #f87171; font-size: 0.7rem;">2.0x RED LINE</span>
+                            </div>
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="chart-pop-vs-threshold"></canvas>
+                            </div>
+                            <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 8px; text-align: center;">
+                                Red bars highlight settlements where current density exceeds safe carrying capacity threshold (>2.0x).
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Vulnerability Index Breakdown -->
+                        <div class="panel-card" style="padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="users" style="color: #fb923c;"></i>
+                                    <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">2. Vulnerability Index Breakdown (Demographics)</span>
+                                </div>
+                                <span class="badge" style="background: rgba(251,146,60,0.2); border: 1px solid #fb923c; color: #fb923c; font-size: 0.7rem;">CENSUS DEMOGRAPHICS</span>
+                            </div>
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="chart-vulnerability-breakdown"></canvas>
+                            </div>
+                            <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 8px; text-align: center;">
+                                Stacked demographic breakdown of Elderly (60+), Children (<5), Differently-Abled, and Medical Dependencies.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Chart 3: Shelter Capacity vs. Occupancy (Full Width) -->
+                    <div class="panel-card" style="padding: 16px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="shield-check" style="color: #10b981;"></i>
+                                <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">3. Evacuation Shelter Capacity vs. Current Occupancy</span>
+                            </div>
+                            <span class="badge" style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; color: #34d399; font-size: 0.7rem;">RELIEF CAMPS HEADROOM</span>
+                        </div>
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="chart-shelter-capacity"></canvas>
+                        </div>
+                        <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 8px; text-align: center;">
+                            Comparison of Maximum Capacity, Current Occupancy, and Available Headroom across designated Government Cyclone & Disaster Centers.
+                        </div>
+                    </div>
+
+                    <!-- Detailed Habitation Carrying Capacity Audit Table -->
+                    <div class="panel-card" style="padding: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="list" style="color: #38bdf8;"></i>
+                                <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">Habitation Carrying Capacity Audit & Vulnerability Tiers</span>
+                            </div>
+                            <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.7rem;">8 SECTORS</span>
+                        </div>
+                        <div id="capacity-audit-table-wrap" style="overflow-x: auto;">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 3: GEOLOGICAL HAZARD PREDICTIONS SLIDE (SIH26191) -->
+            <div id="tab-predictions" class="tab-pane">
+                <div class="predictions-container">
+                    
+                    <!-- Header -->
+                    <div class="predictions-header">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                <span class="badge" style="background: rgba(239,68,68,0.25); border: 1px solid #ef4444; color: #f87171; font-weight: 800; font-size: 0.72rem;">SIH26191 GEOLOGICAL INTELLIGENCE</span>
+                                <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.72rem;">TECTONIC & GEOTECHNICAL ENGINE</span>
+                            </div>
+                            <h2 style="font-size: 1.3rem; font-weight: 800; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="activity" style="color: #ef4444;"></i> Predictive Geological Hazards & Vulnerability Assessment
+                            </h2>
+                            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 4px;">
+                                Future hazard forecast synthesising tectonic shear zones, soil liquidity, Atterberg moisture saturation, and kinematic slope stability across Tamil Nadu habitations.
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="window.cadApp.loadGeologicalPredictions()">
+                                <i data-lucide="refresh-cw"></i> Recalculate Predictions
+                            </button>
+                            <button class="btn btn-primary" onclick="window.cadApp.switchTab('tab-map'); window.cadApp.toggleGeologicalFaultLines(true);">
+                                <i data-lucide="map"></i> View Fault Lines on GIS Map
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Macro Geological KPI Telemetry Bar -->
+                    <div class="predictions-stats-grid" id="predictions-stats-summary">
+                        <div class="pred-stat-card">
+                            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Total Geological Forecasts</span>
+                            <div id="geo-stat-total" style="font-size: 1.4rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono);">8 Zones</div>
+                        </div>
+                        <div class="pred-stat-card">
+                            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Level 4 Catastrophic</span>
+                            <div id="geo-stat-critical" style="font-size: 1.4rem; font-weight: 800; color: #ef4444; font-family: var(--font-mono);">3 Active</div>
+                        </div>
+                        <div class="pred-stat-card">
+                            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">High Probability Hazards</span>
+                            <div id="geo-stat-high-prob" style="font-size: 1.4rem; font-weight: 800; color: #f59e0b; font-family: var(--font-mono);">5 Zones</div>
+                        </div>
+                        <div class="pred-stat-card">
+                            <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Active Fault Lines</span>
+                            <div id="geo-stat-active-faults" style="font-size: 1.4rem; font-weight: 800; color: #34d399; font-family: var(--font-mono);">4 Monitored</div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar for Forecast Horizons & Severity Levels -->
+                    <div class="predictions-filter-bar">
+                        <span style="font-size: 0.76rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">FORECAST FILTERS:</span>
+                        <button class="pred-filter-btn active" data-horizon="ALL" onclick="window.cadApp.filterGeologicalPredictions('ALL')">All Forecasts</button>
+                        <button class="pred-filter-btn" data-horizon="LEVEL4" onclick="window.cadApp.filterGeologicalPredictions('LEVEL4')">🚨 Level 4 Catastrophic</button>
+                        <button class="pred-filter-btn" data-horizon="24H" onclick="window.cadApp.filterGeologicalPredictions('24H')">⚡ Immediate (0 - 24 Hours)</button>
+                        <button class="pred-filter-btn" data-horizon="48H" onclick="window.cadApp.filterGeologicalPredictions('48H')">⏳ Critical (24 - 48 Hours)</button>
+                        <button class="pred-filter-btn" data-horizon="LIQUEFACTION" onclick="window.cadApp.filterGeologicalPredictions('LIQUEFACTION')">💧 Soil Liquefaction</button>
+                        <button class="pred-filter-btn" data-horizon="LANDSLIDE" onclick="window.cadApp.filterGeologicalPredictions('LANDSLIDE')">⛰️ Landslide & Slopes</button>
+                    </div>
+
+                    <!-- Geological Hazard Prediction Cards Grid -->
+                    <div class="geological-cards-grid" id="predictions-cards-grid">
+                        <div style="text-align: center; color: #94a3b8; padding: 40px; grid-column: 1 / -1;">
+                            Synthesising geotechnical soil strata and tectonic telemetry...
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 2: AI INGESTION WORKBENCH -->
+            <div id="tab-ingest" class="tab-pane">
+                <div class="ingest-view">
+                
+                    <!-- Dual-Window Layout State Toolbar -->
+                    <div class="ingest-toolbar">
+                        <div class="ingest-toolbar-title">
+                            <i data-lucide="layout-grid" style="width: 16px; height: 16px;"></i>
+                            <span>AI Triage Multi-Pane Workspace</span>
+                        </div>
+                        <div class="layout-btn-group">
+                            <button type="button" class="layout-mode-btn active" id="btn-layout-split" title="Dual Split 50/50 View" onclick="window.cadApp.setSplitWidth(50)">
+                                <i data-lucide="columns-2"></i> Dual Split
+                            </button>
+                            <button type="button" class="layout-mode-btn" id="btn-layout-left-max" title="Focus Ingestion Input (80%)" onclick="window.cadApp.setSplitWidth(80)">
+                                <i data-lucide="panel-left-open"></i> Focus Input
+                            </button>
+                            <button type="button" class="layout-mode-btn" id="btn-layout-right-max" title="Focus Schema Parser Output (20%)" onclick="window.cadApp.setSplitWidth(20)">
+                                <i data-lucide="panel-right-open"></i> Focus Output
+                            </button>
+                            <button type="button" class="layout-mode-btn" id="btn-layout-reset" title="Reset All Windows" onclick="window.cadApp.resetIngestLayout()">
+                                <i data-lucide="rotate-ccw"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Top Dual Split Workspace with Live Draggable Divider -->
+                    <div id="split-workspace-container" class="split-pane-wrapper">
+                        
+                        <!-- Left Panel: Ingestion Input Panel -->
+                        <div id="split-pane-left" class="split-pane-side" style="width: 50%;">
+                            <div class="panel-card collapsible-card" id="panel-ingest-input">
+                                <div class="panel-title panel-header-actions">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="satellite" style="color: #3b82f6;"></i>
+                                        <span>Distress Ingestion & AI Triage Workbench</span>
+                                    </div>
+                                    <div class="window-controls">
+                                        <button type="button" class="win-btn win-btn-minimize" id="btn-min-input" title="Minimize Window" onclick="window.cadApp.toggleMinimize('panel-ingest-input')">
+                                            <i data-lucide="minus"></i>
+                                        </button>
+                                        <button type="button" class="win-btn win-btn-focus" id="btn-focus-input" title="Maximize Pane / Full Width" onclick="window.cadApp.toggleIngestPaneFocus('panel-ingest-input')">
+                                            <i data-lucide="maximize-2"></i>
+                                        </button>
+                                        <button type="button" class="win-btn win-btn-collapse" id="btn-collapse-input" title="Collapse / Expand Window" onclick="window.cadApp.togglePanelCollapse('panel-ingest-input')">
+                                            <i data-lucide="chevron-up"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body-collapsible">
+                                    <div>
+                                        <div class="form-label" style="margin-bottom: 6px;">Preset Multi-Channel Scenarios:</div>
+                                        <div class="scenario-chips">
+                                            <span class="chip scenario-chip" 
+                                                data-msg="URGENT SOS! Water level has reached 2nd floor in Velachery Lake View Sector 4. Around 14 people including 4 elderly and babies trapped without food or power. Immediate boat rescue needed! @NDRFHQ"
+                                                data-meta="Velachery Lake View Sector 4, Chennai (12.9791, 80.2185)">
+                                                🌊 Velachery Flood (Trapped Families)
+                                            </span>
+                                            <span class="chip scenario-chip" 
+                                                data-msg="[CALLER 112 DISPATCH]: Major chemical gas leak at Manali Petrochem Industrial zone gate 3! Pungent ammonia smell everywhere, workers collapsing and choking, at least 8 people unconscious. Need Hazmat unit and ALS ambulances immediately!"
+                                                data-meta="Manali Industrial Zone, Gate 3 (13.1673, 80.2644)">
+                                                ☣️ Manali Ammonia Gas Leak
+                                            </span>
+                                            <span class="chip scenario-chip" 
+                                                data-msg="Severe 4-alarm fire raging inside commercial multi-story complex on Mount Road near Guindy Flyover. Thick black smoke engulfing 3rd and 4th floors. 22 workers trapped near fire exits! Send heavy fire tender now!"
+                                                data-meta="Mount Road near Guindy Flyover (13.0067, 80.2024)">
+                                                🔥 Commercial High-Rise Fire
+                                            </span>
+                                            <span class="chip scenario-chip" 
+                                                data-msg="Metro bridge girder collapsed onto 2 passenger buses at Anna Nagar West junction! Debris pinning vehicles, heavy screaming, minimum 15 passengers trapped. Critical extrication equipment required ASAP."
+                                                data-meta="Anna Nagar West Junction (13.0850, 80.2101)">
+                                                🏚️ Metro Bridge Collapse
+                                            </span>
+                                            <span class="chip scenario-chip" 
+                                                data-msg="CRITICAL ALARM! Multi-vehicle pileup and petrol tanker fire on Chennai Bypass Porur Toll corridor! Giant fireball engulfing toll lanes, 8 vehicles burning, multiple motorists trapped inside."
+                                                data-meta="Porur Toll Gate, Chennai Bypass (13.0382, 80.1565)">
+                                                ⛽ Porur Highway Tanker Explosion
+                                            </span>
+                                            <span class="chip scenario-chip" 
+                                                data-msg="Subsea crude oil and naphtha pipeline rupture near Ennore Port pier 4! Flammable vapor cloud expanding across coastline, 5 dockworkers overcome by hydrocarbon fumes."
+                                                data-meta="Ennore Port Pier 4 (13.2084, 80.3255)">
+                                                🛢️ Ennore Port Pipeline Rupture
+                                            </span>
+                                            <span class="chip scenario-chip" 
+                                                data-msg="Heartbreaking images coming in from coastal areas. Praying for everyone's safety and well-being. Stay strong guys! #PrayForChennai"
+                                                data-meta="Twitter Web Client">
+                                                🚫 Negative Test (Spam/Commentary)
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Raw Distress Message / Transcript:</label>
+                                        <textarea id="input-raw-msg" class="form-textarea" placeholder="Paste crowdsourced text, WhatsApp alert, or 911/112 transcript here..."></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Sender Metadata / Location Hint (Optional):</label>
+                                        <input id="input-metadata" class="form-input" placeholder="e.g. Sector 4, Velachery / GPS 12.979, 80.218 / Twitter Feed" />
+                                    </div>
+
+                                    <button id="btn-run-triage" class="btn btn-primary" style="justify-content: center; padding: 10px;">
+                                        <i data-lucide="zap"></i> Run AI Triage Engine
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Draggable Resizer Bar -->
+                        <div id="split-divider-main" class="split-divider" title="Drag to resize workspace split-panes">
+                            <div class="split-divider-handle"></div>
+                        </div>
+
+                        <!-- Right Panel: AI Parser Output Inspector -->
+                        <div id="split-pane-right" class="split-pane-side" style="width: 50%;">
+                            <div class="panel-card collapsible-card" id="panel-ingest-output">
+                                <div class="panel-title panel-header-actions">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="terminal" style="color: #10b981;"></i>
+                                        <span>CAD Schema Parser Output</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div id="triage-result-pill"></div>
+                                        <div class="window-controls">
+                                            <button type="button" class="win-btn win-btn-minimize" id="btn-min-output" title="Minimize Window" onclick="window.cadApp.toggleMinimize('panel-ingest-output')">
+                                                <i data-lucide="minus"></i>
+                                            </button>
+                                            <button type="button" class="win-btn win-btn-focus" id="btn-focus-output" title="Maximize Pane / Full Width" onclick="window.cadApp.toggleIngestPaneFocus('panel-ingest-output')">
+                                                <i data-lucide="maximize-2"></i>
+                                            </button>
+                                            <button type="button" class="win-btn win-btn-collapse" id="btn-collapse-output" title="Collapse / Expand Window" onclick="window.cadApp.togglePanelCollapse('panel-ingest-output')">
+                                                <i data-lucide="chevron-up"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="panel-body-collapsible">
+                                    <div class="form-label">Strict JSON Output (CAD Standard Data Model):</div>
+                                    <div id="triage-output-json" class="json-box">
+// Run AI Triage or choose a scenario above to inspect structured CAD JSON telemetry...
+{
+  "status": "IDLE",
+  "engine": "GEMINI_2.5_FLASH + DETERMINISTIC_CAD_PARSER",
+  "ready": true
+}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Multimodal Vision Damage Assessment Workbench -->
+                    <div class="panel-card collapsible-card" id="panel-vision-workbench" style="margin-top: 18px; border: 1px solid rgba(56, 189, 248, 0.4); background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(10,14,23,0.95));">
+                        <div class="panel-title panel-header-actions">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="camera" style="color: #38bdf8; width: 20px;"></i>
+                                <span style="color: #fff; font-weight: 800;">Multimodal Disaster Vision & Damage Assessment Engine</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="badge" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8;">
+                                    GEMINI 2.5 FLASH VISION
+                                </span>
+                                <div class="window-controls">
+                                    <button type="button" class="win-btn win-btn-collapse" id="btn-collapse-vision" title="Collapse / Expand Window" onclick="window.cadApp.togglePanelCollapse('panel-vision-workbench')">
+                                        <i data-lucide="chevron-up"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-body-collapsible">
+                            <div id="split-vision-container" class="split-pane-wrapper" style="margin-top: 12px;">
+                                
+                                <!-- Left: Upload & Presets -->
+                                <div id="split-vision-left" class="split-pane-side" style="width: 50%; padding-right: 8px;">
+                                    <div class="form-label">Upload Disaster Photo / Drone Aerial Recon:</div>
+                                    
+                                    <div id="image-dropzone" class="image-upload-zone" style="border: 2px dashed rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 20px; text-align: center; background: rgba(15,23,42,0.6); cursor: pointer; transition: all 0.2s ease;">
+                                        <input type="file" id="input-disaster-image" accept="image/*" style="display: none;" />
+                                        <div id="dropzone-prompt">
+                                            <i data-lucide="upload-cloud" style="width: 36px; height: 36px; color: #38bdf8; margin-bottom: 8px;"></i>
+                                            <div style="font-size: 0.85rem; font-weight: 700; color: #e2e8f0;">Drag & Drop Disaster Photo or <span style="color: #38bdf8; text-decoration: underline;">Browse</span></div>
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Supports PNG, JPG, WebP, Drone Aerial Imagery (Max 10MB)</div>
+                                        </div>
+                                        <div id="dropzone-preview-wrap" style="display: none; position: relative;">
+                                            <img id="image-preview" src="" alt="Disaster Evidence Preview" style="max-height: 180px; max-width: 100%; border-radius: 6px; object-fit: cover; border: 1px solid #38bdf8;" />
+                                            <button id="btn-remove-image" type="button" class="btn btn-secondary" style="position: absolute; top: 6px; right: 6px; padding: 2px 8px; font-size: 0.7rem; background: rgba(0,0,0,0.8);">✕ Remove</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top: 10px;">
+                                        <div class="form-label">Or Test with Synthetic Disaster Evidence Presets:</div>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                            <button type="button" class="chip image-preset-btn" data-type="FLOOD" data-caption="Severe floodwaters inundating residential sector, 4 vehicles submerged at Velachery Main Road.">
+                                                🌊 Flood Inundation
+                                            </button>
+                                            <button type="button" class="chip image-preset-btn" data-type="FIRE" data-caption="Active structural blaze consuming commercial warehouse with dense smoke plume at Guindy Industrial Estate.">
+                                                🔥 Industrial Fire
+                                            </button>
+                                            <button type="button" class="chip image-preset-btn" data-type="STRUCTURAL_COLLAPSE" data-caption="Concrete bridge slab collapsed onto roadway with vehicles crushed beneath debris at Anna Nagar junction.">
+                                                🏗️ Structural Collapse
+                                            </button>
+                                            <button type="button" class="chip image-preset-btn" data-type="NON_DISASTER" data-caption="Sunny afternoon peaceful street view with normal pedestrian traffic and clear roads.">
+                                                🚫 Normal Scene (Negative)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label class="form-label">Photo Context / Distress Caption (Optional):</label>
+                                        <input id="input-image-caption" class="form-input" placeholder="e.g. Roof-level inundation, 5 people stranded on terrace..." />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Location / Landmark (Optional):</label>
+                                        <input id="input-image-location" class="form-input" placeholder="e.g. Velachery Lake Environs / Guindy Sector 3" />
+                                    </div>
+
+                                    <button id="btn-analyze-image" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px; background: linear-gradient(135deg, #0284c7, #0369a1); border-color: #38bdf8; font-weight: 700;">
+                                        <i data-lucide="scan-eye"></i> Analyze Visual Damage & Ingest to CAD
+                                    </button>
+                                </div>
+
+                                <!-- Vision Live Draggable Resizer Bar -->
+                                <div id="split-divider-vision" class="split-divider" title="Drag to resize vision split-panes">
+                                    <div class="split-divider-handle"></div>
+                                </div>
+
+                                <!-- Right: Visual Assessment Intelligence Report -->
+                                <div id="split-vision-right" class="split-pane-side" style="width: 50%; padding-left: 8px;">
+                                    <div style="background: rgba(10,14,23,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; height: 100%; display: flex; flex-direction: column; box-sizing: border-box;">
+                                        <div style="font-size: 0.85rem; font-weight: 800; color: #fff; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span>VISUAL DAMAGE INTELLIGENCE REPORT</span>
+                                            <span id="vision-status-tag" class="badge badge-low">STANDBY</span>
+                                        </div>
+
+                                        <div id="vision-report-body" style="flex: 1; padding: 12px 0; display: flex; flex-direction: column; justify-content: center; text-align: center; color: var(--text-muted);">
+                                            <i data-lucide="image" style="width: 42px; height: 42px; margin: 0 auto 8px auto; opacity: 0.4;"></i>
+                                            <div style="font-size: 0.85rem;">Upload an image or pick a preset to run multimodal damage assessment.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CAD TRIAGE MATRIX / 3-STAGE OPERATIONAL BOARD -->
+        <div id="tab-matrix" class="tab-pane">
+            <div class="matrix-view">
+
+                    
+                    <!-- 3-Stage Operational Board Tabs -->
+                    <div class="triage-stage-nav">
+                        <button id="btn-stage-proposed" class="stage-tab-btn active" data-stage="PROPOSED">
+                            <span class="stage-icon">📥</span>
+                            <span class="stage-title">PROPOSED</span>
+                            <span class="stage-subtitle">Pending Dispatch</span>
+                            <span id="badge-stage-proposed" class="stage-count-badge">0</span>
+                        </button>
+                        <button id="btn-stage-ongoing" class="stage-tab-btn" data-stage="ONGOING">
+                            <span class="stage-icon">⚡</span>
+                            <span class="stage-title">ONGOING</span>
+                            <span class="stage-subtitle">Active Operations</span>
+                            <span id="badge-stage-ongoing" class="stage-count-badge">0</span>
+                        </button>
+                        <button id="btn-stage-completed" class="stage-tab-btn" data-stage="COMPLETED">
+                            <span class="stage-icon">✅</span>
+                            <span class="stage-title">COMPLETED</span>
+                            <span class="stage-subtitle">Resolved Archive</span>
+                            <span id="badge-stage-completed" class="stage-count-badge">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Triage Queue Sort Controls -->
+                    <div class="matrix-sort-bar">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="arrow-down-up" style="width: 16px;"></i>
+                            <span>Queue Sorting:</span>
+                        </div>
+                        <div class="sort-segmented-control">
+                            <button id="btn-sort-priority" class="sort-toggle-btn active" data-sort="PRIORITY">
+                                🚨 Priority Damage Triage
+                            </button>
+                            <button id="btn-sort-chronological" class="sort-toggle-btn" data-sort="CHRONOLOGICAL">
+                                ⏱️ Timeline Ordering (Chronological)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="matrix-filters">
+                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">
+                            <i data-lucide="filter" style="width: 16px; display: inline-block; vertical-align: middle;"></i> Filters:
+                        </div>
+                        <input id="matrix-search" class="form-input" style="flex: 1; min-width: 240px;" placeholder="🔍 Search by Incident ID (INC-xxx), sector landmark, victim name..." />
+                        <select id="matrix-filter-severity" class="filter-select">
+                            <option value="ALL">All Severities</option>
+                            <option value="CRITICAL">Critical (80-100)</option>
+                            <option value="HIGH">High (60-79)</option>
+                            <option value="MODERATE">Moderate (40-59)</option>
+                            <option value="LOW">Low (0-39)</option>
+                        </select>
+                        <select id="matrix-filter-type" class="filter-select">
+                            <option value="ALL">All Types</option>
+                            <option value="FIRE">Fire</option>
+                            <option value="FLOOD">Flood</option>
+                            <option value="INDUSTRIAL">Industrial</option>
+                            <option value="STRUCTURAL_COLLAPSE">Collapse</option>
+                            <option value="CYCLONE">Cyclone</option>
+                            <option value="EARTHQUAKE">Earthquake</option>
+                        </select>
+                    </div>
+
+                    <div id="matrix-grid-container" class="matrix-grid"></div>
+
+                </div>
+            </div>
+
+            <!-- TAB 4: SITUATION ROOM (SITREP) -->
+            <div id="tab-sitrep" class="tab-pane">
+                <div class="sitrep-view">
+                    
+                    <!-- KPI Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Total Ingested Incidents</span>
+                            <span id="sit-stat-total" class="stat-val" style="color: #60a5fa;">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Active Critical Threats</span>
+                            <span id="sit-stat-critical" class="stat-val" style="color: #f87171;">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Trapped Citizens at Risk</span>
+                            <span id="sit-stat-trapped" class="stat-val" style="color: #fb923c;">0</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Mean Urgency Index</span>
+                            <span id="sit-stat-urgency" class="stat-val" style="color: #34d399;">0 / 100</span>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="panel-card">
+                            <div class="panel-title"><i data-lucide="bar-chart-3"></i> Incidents by Disaster Type</div>
+                            <div style="height: 220px;">
+                                <canvas id="chart-disaster-types"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card">
+                            <div class="panel-title"><i data-lucide="pie-chart"></i> Severity Breakdown</div>
+                            <div style="height: 220px;">
+                                <canvas id="chart-severity"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Situation Report Preview & Export -->
+                    <div class="panel-card">
+                        <div class="panel-title" style="justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="file-text" style="color: #f59e0b;"></i>
+                                <span>Official SDMA / NDRF Situation Report (SITREP)</span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="btn-copy-sitrep" class="btn btn-secondary">
+                                    <i data-lucide="copy"></i> Copy SITREP (MD)
+                                </button>
+                                <button id="btn-download-sitrep" class="btn btn-primary">
+                                    <i data-lucide="download"></i> Download Report
+                                </button>
+                            </div>
+                        </div>
+                        <pre id="sitrep-preview-text" class="json-box" style="color: #e2e8f0; max-height: 260px;">Loading SITREP...</pre>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 5: FIELD RESPONDER TACTICAL TERMINAL -->
+            <div id="tab-responder" class="tab-pane">
+                <div class="responder-view">
+                    
+                    <!-- Unit Header -->
+                    <div class="responder-unit-header">
+                        <div class="responder-profile-group">
+                            <div class="responder-avatar">
+                                <i data-lucide="shield-check" style="width: 24px; height: 24px; color: #fff;"></i>
+                            </div>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <h2 id="resp-unit-name" style="font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px;">Capt. Marcus Vance</h2>
+                                    <span class="badge badge-callsign" id="resp-callsign-badge">COMMAND-ALPHA</span>
+                                    <span class="badge badge-badge-id" id="resp-badge-id">BADGE #9942-ALPHA</span>
+                                    <span class="badge badge-team" id="resp-team-badge">🚒 Heavy Rescue Taskforce 1</span>
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; display: flex; align-items: center; gap: 12px; font-family: var(--font-mono);">
+                                    <span>📍 Sector: <strong id="resp-sector-name" style="color: #60a5fa;">Sector 4 - Velachery Urban Corridor</strong></span>
+                                    <span>📡 Telemetry: <strong style="color: #34d399;">ONLINE • GPS LOCK (12.9791, 80.2185)</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Unit Switcher -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Switch Unit:</label>
+                            <select id="select-responder-unit" class="filter-select" style="min-width: 200px;">
+                                <option value="COMMAND-ALPHA">COMMAND-ALPHA (Tactical HQ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tactical Workspace Layout -->
+                    <div class="responder-grid">
+                        
+                        <!-- Left Column: Active Mission & 6-State Tactical Bar -->
+                        <div class="responder-col">
+                            
+                            <!-- Active Mission Card -->
+                            <div class="panel-card mission-card">
+                                <div class="panel-title" style="justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="target" style="color: #ef4444;"></i>
+                                        <span>Assigned Team Mission</span>
+                                    </div>
+                                    <div id="resp-mission-sev-badge">
+                                        <span class="badge badge-critical">CRITICAL</span>
+                                    </div>
+                                </div>
+
+                                <div id="resp-mission-content">
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);" id="resp-mission-id">INC-AUTO-ASSIGNED</div>
+                                    <h3 id="resp-mission-title" style="font-size: 1.15rem; font-weight: 800; margin: 4px 0 8px 0; line-height: 1.3;">
+                                        Major Disaster Scenario
+                                    </h3>
+                                    
+                                    <div class="mission-meta-grid">
+                                        <div class="mission-meta-item">
+                                            <div class="meta-label"><i data-lucide="map-pin" style="width: 14px;"></i> Location & Coordinates</div>
+                                            <div id="resp-mission-location" class="meta-val">Velachery Lake View, Sector 4</div>
+                                        </div>
+                                        <div class="mission-meta-item">
+                                            <div class="meta-label"><i data-lucide="activity" style="width: 14px;"></i> Urgency Index</div>
+                                            <div id="resp-mission-urgency" class="meta-val" style="color: #ef4444;">92 / 100</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Access Routes -->
+                                    <div class="tactical-directive-box routes">
+                                        <div class="directive-label"><i data-lucide="navigation" style="width: 14px;"></i> Ingress Corridors & Navigational Routes</div>
+                                        <p id="resp-mission-routes" class="directive-text">Primary evacuation corridor cleared. Heavy vehicle access via Inner Ring Road / Guindy Arterial Link.</p>
+                                    </div>
+
+                                    <!-- Emergency Instructions -->
+                                    <div class="tactical-directive-box instructions">
+                                        <div class="directive-label"><i data-lucide="shield-alert" style="width: 14px;"></i> Emergency Tactical Directives</div>
+                                        <p id="resp-mission-instructions" class="directive-text">Deploy inflatable boats and ALS triage squad. Establish 200m staging perimeter at safe elevation.</p>
+                                    </div>
+
+                                    <!-- Safety Protocols & Blockage Warnings -->
+                                    <div class="tactical-directive-box blockages">
+                                        <div class="directive-label"><i data-lucide="alert-octagon" style="width: 14px;"></i> Emergency Safety Protocols & Route Blockages</div>
+                                        <p id="resp-mission-blockages" class="directive-text">
+                                            🚧 <strong>ROUTE WARNING:</strong> Medavakkam Main Rd submerged (1.2m depth). Heavy apparatus reroute via 200 Feet Radial Link.<br>
+                                            ⚠️ <strong>SAFETY PROTOCOL:</strong> SCBA required within 150m cordon. Live secondary structural collapse hazard.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- 6-State Tactical Status Bar -->
+                                <div>
+                                    <div class="form-label" style="margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        <i data-lucide="sliders" style="width: 14px; display: inline-block; vertical-align: middle;"></i> 6-State Tactical Status Mobilization:
+                                    </div>
+                                    <div class="tactical-status-bar">
+                                        <button class="tactical-btn" data-status="ACCEPTED" id="t-btn-accepted">
+                                            <span class="btn-indicator"></span>
+                                            <span>ACCEPTED</span>
+                                        </button>
+                                        <button class="tactical-btn" data-status="EN_ROUTE" id="t-btn-enroute">
+                                            <span class="btn-indicator"></span>
+                                            <span>EN_ROUTE</span>
+                                        </button>
+                                        <button class="tactical-btn active" data-status="ON_SCENE" id="t-btn-onscene">
+                                            <span class="btn-indicator"></span>
+                                            <span>ON_SCENE</span>
+                                        </button>
+                                        <button class="tactical-btn btn-danger-tactical" data-status="ASSISTANCE_REQUIRED" id="t-btn-assist">
+                                            <span class="btn-indicator"></span>
+                                            <span>ASSISTANCE REQ</span>
+                                        </button>
+                                        <button class="tactical-btn btn-control-tactical" data-status="SITUATION_UNDER_CONTROL" id="t-btn-control">
+                                            <span class="btn-indicator"></span>
+                                            <span>UNDER CONTROL</span>
+                                        </button>
+                                        <button class="tactical-btn btn-success-tactical" data-status="RESOLVED" id="t-btn-resolved">
+                                            <span class="btn-indicator"></span>
+                                            <span>RESOLVED</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Right Column: Casualty & Victim Triage Logger -->
+                        <div class="responder-col">
+                            
+                            <div class="panel-card">
+                                <div class="panel-title">
+                                    <i data-lucide="heart-pulse" style="color: #ec4899;"></i>
+                                    <span>Casualty & Victim Triage Logger</span>
+                                </div>
+
+                                <div class="victim-form">
+                                    <div class="form-group">
+                                        <label class="form-label">Victim Identification / Identifier:</label>
+                                        <input id="input-victim-name" class="form-input" placeholder="e.g. Female (approx 35 yrs) / Ramesh K." />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">START Triage Category:</label>
+                                        <div class="triage-category-selector">
+                                            <label class="cat-chip red active" data-cat="RED">
+                                                <input type="radio" name="triage-cat" value="RED" checked style="display: none;">
+                                                <span>🔴 RED (Immediate)</span>
+                                            </label>
+                                            <label class="cat-chip yellow" data-cat="YELLOW">
+                                                <input type="radio" name="triage-cat" value="YELLOW" style="display: none;">
+                                                <span>🟡 YELLOW (Delayed)</span>
+                                            </label>
+                                            <label class="cat-chip green" data-cat="GREEN">
+                                                <input type="radio" name="triage-cat" value="GREEN" style="display: none;">
+                                                <span>🟢 GREEN (Minor)</span>
+                                            </label>
+                                            <label class="cat-chip black" data-cat="BLACK">
+                                                <input type="radio" name="triage-cat" value="BLACK" style="display: none;">
+                                                <span>⚫ BLACK (Deceased)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Injury Observations / Medical Notes:</label>
+                                        <input id="input-victim-notes" class="form-input" placeholder="e.g. Second degree burns, smoke inhalation, stabilized on O2." />
+                                    </div>
+
+                                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="check-victim-rescued" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                                        <label for="check-victim-rescued" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); cursor: pointer;">
+                                            Extricated & Evacuated to Staging / Hospital
+                                        </label>
+                                    </div>
+
+                                    <button id="btn-submit-victim" class="btn btn-primary" style="justify-content: center; padding: 10px;">
+                                        <i data-lucide="user-plus"></i> Submit Victim Profile to CAD
+                                    </button>
+                                </div>
+
+                                <!-- Live Victim Log List -->
+                                <div style="margin-top: 10px;">
+                                    <div class="form-label" style="margin-bottom: 6px;">Logged Scene Casualties:</div>
+                                    <div id="responder-victim-list" class="logged-victim-list">
+                                        <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">
+                                            No victim profiles logged for this mission yet.
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- TAB 6: ON-SITE CASUALTY LOGGER (STANDALONE TAB) -->
+            <div id="tab-casualty" class="tab-pane">
+                <div class="responder-view">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <i data-lucide="heart-pulse" style="color: #ec4899;"></i>
+                            <span>Field Responder Medical & Casualty Management Suite</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+                            Rapid on-scene mass-casualty triage management following the Simple Triage and Rapid Treatment (START) protocol.
+                        </p>
+                        <div class="responder-grid">
+                            <div class="responder-col">
+                                <div class="victim-form">
+                                    <div class="form-group">
+                                        <label class="form-label">Victim Identification / Identifier:</label>
+                                        <input id="input-victim-name-alt" class="form-input" placeholder="e.g. Adult Male (approx 45 yrs) / S. Suresh" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">START Triage Category:</label>
+                                        <div class="triage-category-selector">
+                                            <label class="cat-chip red active" data-cat="RED">
+                                                <span>🔴 RED (Immediate)</span>
+                                            </label>
+                                            <label class="cat-chip yellow" data-cat="YELLOW">
+                                                <span>🟡 YELLOW (Delayed)</span>
+                                            </label>
+                                            <label class="cat-chip green" data-cat="GREEN">
+                                                <span>🟢 GREEN (Minor)</span>
+                                            </label>
+                                            <label class="cat-chip black" data-cat="BLACK">
+                                                <span>⚫ BLACK (Deceased)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Injury Observations / Medical Notes:</label>
+                                        <input id="input-victim-notes-alt" class="form-input" placeholder="e.g. Compound fracture, tourniquet applied, BP stable." />
+                                    </div>
+                                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="check-victim-rescued-alt" style="width: 18px; height: 18px; accent-color: #3b82f6;" />
+                                        <label for="check-victim-rescued-alt" style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary); cursor: pointer;">
+                                            Extricated & Evacuated to Staging / Hospital
+                                        </label>
+                                    </div>
+                                    <button id="btn-submit-victim-alt" class="btn btn-primary" style="justify-content: center; padding: 10px;">
+                                        <i data-lucide="user-plus"></i> Submit Victim Profile to CAD
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="responder-col">
+                                <div class="form-label" style="margin-bottom: 6px;">Logged Incident Casualties:</div>
+                                <div id="responder-victim-list-alt" class="logged-victim-list">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">
+                                        No victim profiles logged yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: SIH26191 HAZARD-BASED RED ZONES & CARRYING CAPACITY -->
+            <div id="tab-redzones" class="tab-pane">
+                <div class="sih-view-container" style="padding: 16px; overflow-y: auto; height: 100%;">
+                    
+                    <!-- Header Bar -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(15,23,42,0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="badge" style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #f87171; font-weight: 800;">SIH26191</span>
+                                <h2 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0;">Hazard-Based Red Zones & Carrying Capacity Engine</h2>
+                            </div>
+                            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+                                Multi-hazard severity delineation merging Open-Meteo rainfall, terrain slope, demographic density, and shelter limits.
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="window.cadApp.loadSIH26191Data()">
+                                <i data-lucide="refresh-cw"></i> Refresh Telemetry
+                            </button>
+                            <button class="btn btn-primary" onclick="window.cadApp.switchTab('tab-map'); window.cadMapManager.setMapMode('RED_ZONES');">
+                                <i data-lucide="map"></i> View on GIS Map
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPI Metric Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div class="panel-card" style="padding: 12px; border-left: 3px solid #38bdf8;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Habitations Monitored</div>
+                            <div id="sih-kpi-total-hab" style="font-size: 1.6rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono);">8</div>
+                            <div style="font-size: 0.7rem; color: #64748b;">Across 6 Tamil Nadu Districts</div>
+                        </div>
+                        <div class="panel-card" style="padding: 12px; border-left: 3px solid #ef4444;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">At-Risk Population</div>
+                            <div id="sih-kpi-at-risk-pop" style="font-size: 1.6rem; font-weight: 800; color: #ef4444; font-family: var(--font-mono);">0</div>
+                            <div style="font-size: 0.7rem; color: #fca5a5;">High Inundation & Slope Hazard</div>
+                        </div>
+                        <div class="panel-card" style="padding: 12px; border-left: 3px solid #f97316;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Over-Capacity Habitations</div>
+                            <div id="sih-kpi-over-cap" style="font-size: 1.6rem; font-weight: 800; color: #f97316; font-family: var(--font-mono);">0</div>
+                            <div style="font-size: 0.7rem; color: #fed7aa;">Density Ratio > 2.0x Threshold</div>
+                        </div>
+                        <div class="panel-card" style="padding: 12px; border-left: 3px solid #10b981;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Total Shelter Capacity</div>
+                            <div id="sih-kpi-shelter-cap" style="font-size: 1.6rem; font-weight: 800; color: #10b981; font-family: var(--font-mono);">0</div>
+                            <div style="font-size: 0.7rem; color: #a7f3d0;">State Disaster Relief Camps</div>
+                        </div>
+                        <div class="panel-card" style="padding: 12px; border-left: 3px solid #ec4899;">
+                            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Statewide Shelter Deficit</div>
+                            <div id="sih-kpi-shelter-deficit" style="font-size: 1.6rem; font-weight: 800; color: #ec4899; font-family: var(--font-mono);">0</div>
+                            <div style="font-size: 0.7rem; color: #fbcfe8;">Relocation Buffer Required</div>
+                        </div>
+                    </div>
+
+                    <!-- Split Grid: Red Zones vs Carrying Capacity Assessment -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        
+                        <!-- Left: Hazard Red Zones -->
+                        <div class="panel-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="alert-triangle" style="color: #ef4444;"></i>
+                                    <span style="font-weight: 700; font-size: 0.95rem; color: #fff;">Dynamic Multi-Hazard Red Zones</span>
+                                </div>
+                                <span class="badge" style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #f87171; font-size: 0.7rem;">LIVE CORRIDORS</span>
+                            </div>
+                            <div id="red-zones-list-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto;">
+                                <div style="text-align: center; color: var(--text-muted); padding: 24px;">Loading dynamic red zone corridors...</div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Carrying Capacity Assessment -->
+                        <div class="panel-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="scale" style="color: #38bdf8;"></i>
+                                    <span style="font-weight: 700; font-size: 0.95rem; color: #fff;">Habitation Carrying Capacity & Vulnerability</span>
+                                </div>
+                                <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.7rem;">CARRYING CAPACITY</span>
+                            </div>
+                            <div id="capacity-reports-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto;">
+                                <div style="text-align: center; color: var(--text-muted); padding: 24px;">Evaluating carrying capacity metrics...</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 8: SIH26191 IMMEDIATE RELOCATION & EVACUATION MATRIX -->
+            <div id="tab-relocation" class="tab-pane">
+                <div class="sih-view-container" style="padding: 16px; overflow-y: auto; height: 100%;">
+                    
+                    <!-- Header Bar -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: rgba(15,23,42,0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="badge" style="background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 800;">SIH26191</span>
+                                <h2 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0;">Immediate Relocation & Convoy Evacuation Matrix</h2>
+                            </div>
+                            <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+                                Automated priority-matching of over-capacity/high-risk habitations to designated operational relief centers with transit routing.
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary" onclick="window.cadApp.loadSIH26191Data()">
+                                <i data-lucide="refresh-cw"></i> Recalculate Relocation Plan
+                            </button>
+                            <button class="btn btn-primary" onclick="window.cadApp.switchTab('tab-map'); window.cadMapManager.setMapMode('CONVOYS');">
+                                <i data-lucide="navigation"></i> View Corridors on Map
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Priority Relocation Plan Allocations -->
+                    <div class="panel-card" style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="truck" style="color: #fb923c;"></i>
+                                <span style="font-weight: 700; font-size: 0.95rem; color: #fff;">Priority-Ranked Habitation Evacuation Allocations</span>
+                            </div>
+                            <span class="badge" style="background: rgba(251,146,60,0.2); border: 1px solid #fb923c; color: #fb923c; font-size: 0.7rem;">AUTOMATED LOGISTICS</span>
+                        </div>
+                        
+                        <div id="relocation-allocations-container" style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="text-align: center; color: var(--text-muted); padding: 24px;">Computing optimal relocation assignments...</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal: Responder Unit Dispatch -->
+    <div id="modal-dispatch" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-dispatch-title" style="font-size: 1.05rem; font-weight: 700;">Dispatch First Responders</h3>
+                <button class="btn-icon modal-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Select emergency response units to mobilize to scene:</div>
+                <div id="dispatch-unit-list" class="unit-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Cancel</button>
+                <button id="btn-commit-dispatch" class="btn btn-primary"><i data-lucide="send"></i> Mobilize Selected Units</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Step 10 Queue Safety Sweep Audit -->
+    <div id="modal-safety-sweep" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 750px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="shield-check" style="color: #fbbf24; width: 22px; height: 22px;"></i>
+                    <h3 style="font-size: 1.1rem; font-weight: 800;">Queue Safety Sweep Audit & Integrity Check</h3>
+                </div>
+                <button class="btn-icon modal-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Sweep KPI Audit Grid -->
+                <div class="safety-sweep-kpis">
+                    <div class="sweep-kpi-card">
+                        <span class="sweep-kpi-label">Active Incidents</span>
+                        <span id="sweep-total-active" class="sweep-kpi-val" style="color: #60a5fa;">0</span>
+                    </div>
+                    <div class="sweep-kpi-card">
+                        <span class="sweep-kpi-label">Unassigned Critical</span>
+                        <span id="sweep-unassigned-critical" class="sweep-kpi-val" style="color: #ef4444;">0</span>
+                    </div>
+                    <div class="sweep-kpi-card">
+                        <span class="sweep-kpi-label">Unrescued Casualties</span>
+                        <span id="sweep-unrescued-victims" class="sweep-kpi-val" style="color: #f59e0b;">0</span>
+                    </div>
+                    <div class="sweep-kpi-card">
+                        <span class="sweep-kpi-label">GPS & Timestamp Sync</span>
+                        <span id="sweep-gps-integrity" class="sweep-kpi-val" style="color: #10b981;">100%</span>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Automated Queue Integrity Verification:
+                </div>
+                <div id="safety-sweep-incident-list" class="safety-sweep-list"></div>
+
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Operational "Verify All Clear" Checklist:
+                </div>
+                <div class="sweep-checklist">
+                    <label class="sweep-check-item">
+                        <input type="checkbox" id="chk-sweep-1" checked />
+                        <span>100% of open emergency calls have valid GPS coordinates and timestamps</span>
+                    </label>
+                    <label class="sweep-check-item">
+                        <input type="checkbox" id="chk-sweep-2" checked />
+                        <span>All high/critical urgency rescue calls have active responder teams assigned</span>
+                    </label>
+                    <label class="sweep-check-item">
+                        <input type="checkbox" id="chk-sweep-3" checked />
+                        <span>All reported RED/YELLOW victims triaged with extrication protocols</span>
+                    </label>
+                    <label class="sweep-check-item">
+                        <input type="checkbox" id="chk-sweep-4" checked />
+                        <span>Ingress access routes and flood/hazard blockages verified with field units</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close">Close Audit</button>
+                <button id="btn-confirm-sweep-clearance" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">
+                    <i data-lucide="check-circle-2"></i> Verify All Clear & Confirm Operational Clearance
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Step 12 System Standby & Session Concluded -->
+    <div id="modal-system-standby" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 650px; text-align: center;">
+            <div class="standby-icon-wrap">
+                <i data-lucide="archive" style="width: 36px; height: 36px; color: #60a5fa;"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-top: 14px; color: #fff;">
+                SYSTEM STANDBY // MISSION CONCLUDED
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 8px auto 16px auto; max-width: 500px;">
+                Complete operational session log has been archived and downloaded as clean structured JSON. Live telemetry polling and feed simulations are safely placed on standby.
+            </p>
+            <div class="standby-stats-summary" id="standby-stats-box">
+                <div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase;">Incidents Logged</div>
+                    <div id="standby-stat-incidents" style="font-size: 1.2rem; font-weight: 800; color: #60a5fa;">0</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase;">Casualties Trapped/Injured</div>
+                    <div id="standby-stat-casualties" style="font-size: 1.2rem; font-weight: 800; color: #f59e0b;">0</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase;">Mobilized Units</div>
+                    <div id="standby-stat-units" style="font-size: 1.2rem; font-weight: 800; color: #10b981;">0</div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+                <button id="btn-redownload-json" class="btn btn-secondary">
+                    <i data-lucide="download"></i> Re-download Session JSON
+                </button>
+                <button id="btn-resume-cad" class="btn btn-primary">
+                    <i data-lucide="play"></i> Resume Active CAD Operations
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Multimodal Image Zoom & Visual Evidence Viewer -->
+    <div id="modal-image-zoom" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 820px; background: rgba(10, 15, 29, 0.96); border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 25px 60px rgba(0,0,0,0.9);">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="camera" style="color: #38bdf8; width: 20px; height: 20px;"></i>
+                    <h3 id="modal-zoom-title" style="font-size: 1.05rem; font-weight: 800; color: #fff;">Visual Disaster Evidence</h3>
+                </div>
+                <button class="btn-icon modal-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 16px 0;">
+                <div style="max-height: 60vh; overflow: hidden; border-radius: 10px; border: 1px solid var(--border-color); background: #000; display: flex; align-items: center; justify-content: center;">
+                    <img id="modal-zoom-img" src="" alt="Evidence Photo" style="max-width: 100%; max-height: 58vh; object-fit: contain;" />
+                </div>
+                <div id="modal-zoom-caption" style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; text-align: left; padding: 0 8px;"></div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <span id="modal-zoom-meta" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);"></span>
+                <button class="btn btn-secondary modal-close">Close Preview</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal: After-Action Report (AAR) -->
+    <div id="modal-aar" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 720px; max-height: 88vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="file-check" style="color: #10b981; width: 22px;"></i>
+                    <h3 id="modal-aar-title" style="font-size: 1.1rem; font-weight: 800; color: #fff;">AFTER-ACTION REPORT</h3>
+                </div>
+                <button class="btn btn-secondary modal-close" style="padding: 4px 8px; font-size: 0.8rem;">✕</button>
+            </div>
+            <div id="modal-aar-body" style="padding: 16px 0; overflow-y: auto; flex: 1;">
+                <!-- Dynamically populated by JS -->
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <button id="btn-print-aar" class="btn btn-secondary">
+                    <i data-lucide="printer"></i> Print / Export AAR
+                </button>
+                <button class="btn btn-primary modal-close">
+                    <i data-lucide="check"></i> Close Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIVE SOCIAL INGESTION DRAWER -->
+    <div id="stream-drawer" class="social-stream-drawer fixed inset-y-0 right-0 w-[420px] max-w-[90vw] bg-slate-950/95 border-l border-slate-800 shadow-2xl z-[9999] flex flex-col transition-transform duration-300" style="display: none; backdrop-filter: blur(16px);">
+        <!-- Header -->
+        <div class="stream-drawer-header p-4 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="stream-pulse-dot active h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <h3 class="font-mono text-sm font-bold text-slate-100 uppercase tracking-wider" style="margin: 0;">Live Social Crisis Ingestion Feed</h3>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn btn-secondary" id="btn-stream-toggle" onclick="window.cadApp.toggleStreamWorker()" title="Pause/Resume Ingestion" style="padding: 4px 8px; font-size: 0.72rem;">
+                    <i data-lucide="pause" style="width: 12px; height: 12px;"></i> <span id="btn-stream-toggle-label">Pause</span>
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="window.cadApp.simulateStreamPost()" title="Trigger Instant Simulated Social Crisis Post" style="padding: 4px 8px; font-size: 0.72rem; background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8;">
+                    <i data-lucide="zap" style="width: 12px; height: 12px;"></i> Test Post
+                </button>
+                <button type="button" class="btn btn-icon" onclick="window.cadApp.clearStreamLog()" title="Clear Stream Log" style="padding: 4px;">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                </button>
+                <button id="close-stream-drawer" type="button" onclick="window.cadApp.toggleSocialStreamDrawer(false)" class="text-slate-400 hover:text-white text-xl px-2 py-1 rounded hover:bg-slate-800 transition-colors cursor-pointer" title="Close Drawer">&times;</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="px-4 py-2 bg-slate-900/80 border-b border-slate-800 flex justify-between text-xs font-mono text-slate-400">
+            <span>Sources: X (Twitter), Reddit, 112 TN, Web</span>
+            <span class="text-emerald-400 font-semibold" style="display: flex; align-items: center; gap: 4px;">● INGESTING</span>
+        </div>
+
+        <!-- Stream Summary Metrics -->
+        <div class="stream-stats-bar">
+            <div class="stream-stat-chip">
+                <span>Ingested:</span> <strong id="stream-stat-ingested" style="color: #60a5fa;">0</strong>
+            </div>
+            <div class="stream-stat-chip">
+                <span>Tickets:</span> <strong id="stream-stat-tickets" style="color: #10b981;">0</strong>
+            </div>
+            <div class="stream-stat-chip">
+                <span>Merged:</span> <strong id="stream-stat-merged" style="color: #38bdf8;">0</strong>
+            </div>
+            <div class="stream-stat-chip">
+                <span>Filtered:</span> <strong id="stream-stat-discarded" style="color: #f87171;">0</strong>
+            </div>
+        </div>
+
+        <!-- Feed Items Container -->
+        <div id="stream-feed-list" class="stream-feed-list flex-1 overflow-y-auto p-4 space-y-3 font-mono">
+            <div class="stream-empty-state">
+                <i data-lucide="activity" style="width: 32px; height: 32px; opacity: 0.4; margin-bottom: 8px;"></i>
+                <div>Listening to continuous crisis stream across Tamil Nadu...</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Click "Test Post" to trigger an instant incoming distress signal.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="/static/js/audio.js?v=3.0.0"></script>
+    <script src="/static/js/map.js?v=3.0.0"></script>
+    <script src="/static/js/app.js?v=3.0.0"></script>
+</body>
+</html>
+
+
+
+
